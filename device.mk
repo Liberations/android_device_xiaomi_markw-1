@@ -72,8 +72,8 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/com.nxp.mifare.xml:system/etc/permissions/com.nxp.mifare.xml \
     frameworks/native/data/etc/handheld_core_hardware.xml:system/etc/permissions/handheld_core_hardware.xml
 
-# ANT+
-PRODUCT_PACKAGES += \
+# ANT
+#PRODUCT_PACKAGES += \
     AntHalService \
     com.dsi.ant.antradio_library \
     libantradio
@@ -421,3 +421,6 @@ PRODUCT_COPY_FILES += \
 # default.prop
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     persist.sys.usb.config=mtp
+
+PRODUCT_BOOT_JARS += \
+    telephony-ext
