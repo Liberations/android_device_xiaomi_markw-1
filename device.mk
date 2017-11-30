@@ -175,7 +175,12 @@ PRODUCT_PACKAGES += \
 
 # Fingerprint
 PRODUCT_PACKAGES += \
-     fingerprintd
+    android.hardware.biometrics.fingerprint@2.0-service-custom
+
+# FM
+PRODUCT_PACKAGES += \
+    FMRadio \
+    libfmjni
 
 # Fs_config
 PRODUCT_PACKAGES += \
