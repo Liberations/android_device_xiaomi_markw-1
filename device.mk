@@ -77,6 +77,8 @@ PRODUCT_COPY_FILES += \
     AntHalService \
     com.dsi.ant.antradio_library \
     libantradio
+PRODUCT_PACKAGES += \
+    android.hidl.base@1.0
 
 # FM
 PRODUCT_PACKAGES += \
