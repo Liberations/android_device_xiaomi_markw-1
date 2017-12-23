@@ -80,9 +80,16 @@ PRODUCT_PACKAGES += \
 
 # FM
 PRODUCT_PACKAGES += \
+    android.hidl.base@1.0
     FMRadio \
     libfmjni
 
+# Netutils
+PRODUCT_PACKAGES += \
+    netutils-wrapper-1.0 \
+    android.system.net.netd@1.0 \
+    libandroid_net
+	
 # Audio
 PRODUCT_PACKAGES += \
     audiod \
