@@ -62,6 +62,13 @@ on early-boot
     write /sys/kernel/boot_cdsp/boot 1
     write /sys/kernel/boot_slpi/boot 1
 
+    # SSR setup
+    write /sys/bus/msm_subsys/devices/subsys0/restart_level "related"
+    write /sys/bus/msm_subsys/devices/subsys1/restart_level "related"
+    write /sys/bus/msm_subsys/devices/subsys2/restart_level "related"
+    write /sys/bus/msm_subsys/devices/subsys3/restart_level "related"
+    write /sys/bus/msm_subsys/devices/subsys4/restart_level "related"
+
     # Graphics
     chown system graphics /sys/class/graphics/fb0/idle_time
     chmod 0664 /sys/class/graphics/fb0/idle_time
@@ -85,10 +92,10 @@ on boot
     chown bluetooth bluetooth /sys/module/hci_uart/parameters/ath_btwrite
     chown system system /sys/module/sco/parameters/disable_esco
     chown bluetooth bluetooth /sys/module/hci_smd/parameters/hcismd_set
+    chown system system /sys/module/radio_iris_transport/parameters/fmsmd_set
     chown system system /sys/module/msm_core/parameters/polling_interval
     chown system system /sys/module/msm_core/parameters/disabled
-    chown system syst  chown system system /sys/module/radio_iris_transport/parameters/fmsmd_setem /sys/kernel/debug/msm_core/enable
-    
+    chown system system /sys/kernel/debug/msm_core/enable
     chown system system /sys/kernel/debug/msm_core/ptable
     chown system system /sys/kernel/boot_slpi/ssr
     chmod 0660 /sys/module/bluetooth_power/parameters/power
@@ -163,17 +170,14 @@ on boot
 
     # Notification LED
     chown system system /sys/class/leds/red/blink
-    chown system system /sys/class/leds/green/blink
-    chown system system /sys/class/leds/blue/blink
-    chown system system /sys/class/leds/red/brightness
-    chown system system /sys/class/leds/green/brightness
-    chown system system /sys/class/leds/blue/brightness
-    chown system system /sys/class/leds/red/device/grpfreq
-    chown system system /sys/class/leds/red/device/grppwm
-    chown system system /sys/class/leds/red/device/blink
     chown system system /sys/class/leds/red/led_time
+    chown system system /sys/class/leds/red/brightness
+    chown system system /sys/class/leds/green/blink
     chown system system /sys/class/leds/green/led_time
+    chown system system /sys/class/leds/green/brightness
+    chown system system /sys/class/leds/blue/blink
     chown system system /sys/class/leds/blue/led_time
+    chown system system /sys/class/leds/blue/brightness
 
     # IR Blaster
     chown system system /sys/class/leds/infrared/transmit
@@ -184,7 +188,6 @@ on boot
     chmod 0644 /dev/goodix_fp
     chmod 0777 /system/bin/gx_fpd
 
-    # Fpc perms form miui 7.6.8
     chown system system /sys/devices/soc/soc:fpc1020/compatible_all
     chmod 0664 /sys/devices/soc/soc:fpc1020/compatible_all
     chown system system /sys/devices/soc/soc:fpc1020/irq
@@ -217,24 +220,7 @@ on boot
     # Create directory used for display
     mkdir /persist/display 0770 system graphics
 
-    # Enable sensitive mode for cmhw on EBBG screens.
-    # Tianma seems not to have sensitive mode, so it is device-specific for now
-    chmod 0660 /sys/devices/soc/78b7000.i2c/i2c-3/3-004a/sensitive_mode
-    chown system system /sys/devices/soc/78b7000.i2c/i2c-3/3-004a/sensitive_mode
-
-    # Subsystem Restart
-    # a506_zap
-    write /sys/bus/msm_subsys/devices/subsys0/restart_level "related"
-    # Venus
-    write /sys/bus/msm_subsys/devices/subsys1/restart_level "related"
-    # ADSP
-    write /sys/bus/msm_subsys/devices/subsys2/restart_level "related"
-    # WCNSS
-    write /sys/bus/msm_subsys/devices/subsys3/restart_level "related"
-    # Modem
-    write /sys/bus/msm_subsys/devices/subsys4/restart_level "related"
-
-# MSM specific files that need to be created on /data
+# msm specific files that need to be created on /data
 on post-fs-data
     mkdir /data/vendor/misc 01771 system system
 
@@ -382,10 +368,6 @@ on post-fs-data
     chmod 2770 /data/vendor/perfd
     rm /data/vendor/perfd/default_values
 
-    # NFC local data and nfcee xml storage
-    mkdir /data/nfc 0770 nfc nfc
-    mkdir /data/nfc/param 0770 nfc nfc
-
     #Create IOP  deamon related dirs
     mkdir /data/vendor/iop 0770 root system
 
@@ -442,20 +424,7 @@ service iop /system/vendor/bin/iop
     group root
     disabled
     socket iop seqpacket 0666 root system
-    oneshot
-
-service ptt_socket_app /system/bin/ptt_socket_app -d
-    class main
-    user root
-    group root
-    oneshot
-
-service ptt_ffbm /system/bin/ptt_socket_app -f -d
-    user root
-    group root
-    disabled
-    oneshot
-
+    writepid /dev/cpuset/system-background/tasks
 
 #bug156417 zhaoqf_sh add Allow usb charging to be disabled peristently
 on property:persist.sys.chgdisabled=1
@@ -465,6 +434,9 @@ on property:persist.sys.chgdisabled=0
 
 on property:sys.boot_completed=1
     write /dev/kmsg "Boot completed "
+    #Reset read ahead for dm-0 and dm-1 to 512kb
+    write /sys/block/dm-0/queue/read_ahead_kb 512
+    write /sys/block/dm-1/queue/read_ahead_kb 512
     #WDSP FW boot sysfs node used by STHAL
     chown media audio /sys/kernel/wdsp0/boot
     chown media audio /sys/kernel/wcd_cpe0/fw_name
@@ -670,15 +642,18 @@ service gx_fpd /system/bin/gx_fpd
 # fpc fingerprint section - start
 on property:persist.sys.fp.vendor=switchf
     stop gx_fpd
-    setprop sys.fp.vendor searchf
-    setprop fpc.fp.miui.token 0
+    setprop persist.sys.fp.vendor searchf
+    setprop persist.sys.fp.goodix 0
     setprop ro.boot.fpsensor fpc
-    setprop ro.hardware.fingerprint searchf
+    setprop ro.hardware.fingerprint fpc
     start fps_hal
 
 # goodix fingerprint section - start
-on property:sys.fp.onstart=1
-   setprop goodix.fp.miui.analyse 1
-   setprop goodix.fp.miui.token 0
-   setprop ro.boot.fpsensor gdx
-   setprop ro.hardware.fingerprint goodix
+on property:persist.sys.fp.vendor=goodix
+    setprop persist.sys.fp.goodix 1
+    setprop ro.boot.fpsensor gdx
+    setprop ro.hardware.fingerprint goodix 
+
+on property:persist.sys.fp.onstart=1
+   start fps_hal
+# goodix fingerprint section - end

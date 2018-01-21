@@ -1180,8 +1180,6 @@ case "$target" in
                 echo 3 > /proc/sys/kernel/sched_spill_nr_run
                 # Apply inter-cluster load balancer restrictions
                 echo 1 > /proc/sys/kernel/sched_restrict_cluster_spill
-                # Enabling fp_boost by default
-                echo 1 > /sys/kernel/fp_boost/enabled
 
                 # set sync wakee policy tunable
                 echo 1 > /proc/sys/kernel/sched_prefer_sync_wakee_to_waker
@@ -1245,28 +1243,28 @@ case "$target" in
                     echo 40 > $gpu_bimc_io_percent
                 done
 
-            		# Configure DCC module to capture critical register contents when device crashes
-            		for DCC_PATH in /sys/bus/platform/devices/*.dcc*
-            		do
-            			echo  0 > $DCC_PATH/enable
-            			echo cap >  $DCC_PATH/func_type
-            			echo sram > $DCC_PATH/data_sink
-            			echo  1 > $DCC_PATH/config_reset
+		# Configure DCC module to capture critical register contents when device crashes
+		for DCC_PATH in /sys/bus/platform/devices/*.dcc*
+		do
+			echo  0 > $DCC_PATH/enable
+			echo cap >  $DCC_PATH/func_type
+			echo sram > $DCC_PATH/data_sink
+			echo  1 > $DCC_PATH/config_reset
 
-            			# Register specifies APC CPR closed-loop settled voltage for current voltage corner
-            			echo 0xb1d2c18 1 > $DCC_PATH/config
+			# Register specifies APC CPR closed-loop settled voltage for current voltage corner
+			echo 0xb1d2c18 1 > $DCC_PATH/config
 
-            			# Register specifies SW programmed open-loop voltage for current voltage corner
-            			echo 0xb1d2900 1 > $DCC_PATH/config
+			# Register specifies SW programmed open-loop voltage for current voltage corner
+			echo 0xb1d2900 1 > $DCC_PATH/config
 
-            			# Register specifies APM switch settings and APM FSM state
-            			echo 0xb1112b0 1 > $DCC_PATH/config
+			# Register specifies APM switch settings and APM FSM state
+			echo 0xb1112b0 1 > $DCC_PATH/config
 
-            			# Register specifies CPR mode change state and also #online cores input to CPR HW
-            			echo 0xb018798 1 > $DCC_PATH/config
+			# Register specifies CPR mode change state and also #online cores input to CPR HW
+			echo 0xb018798 1 > $DCC_PATH/config
 
-            			echo  1 > $DCC_PATH/enable
-            		done
+			echo  1 > $DCC_PATH/enable
+		done
 
                 # disable thermal & BCL core_control to update interactive gov settings
                 echo 0 > /sys/module/msm_thermal/core_control/enabled
@@ -1289,16 +1287,6 @@ case "$target" in
                     echo -n enable > $mode
                 done
 
-                for freq in /sys/devices/system/cpu/cpu*/cpufreq/scaling_max_freq
-                do
-                  echo 2208000 > $freq
-                done
-
-                for freq in /sys/devices/system/cpu/cpu*/cpufreq/scaling_min_freq
-                do
-                  echo 307000 > $freq
-                done
-
                 #governor settings
                 echo 1 > /sys/devices/system/cpu/cpu0/online
                 echo "interactive" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
@@ -1310,10 +1298,7 @@ case "$target" in
                 echo "85 1401600:80" > /sys/devices/system/cpu/cpufreq/interactive/target_loads
                 echo 39000 > /sys/devices/system/cpu/cpufreq/interactive/min_sample_time
                 echo 40000 > /sys/devices/system/cpu/cpufreq/interactive/sampling_down_factor
-
-
                 echo 652800 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
-                echo 1 > /sys/devices/system/cpu/cpufreq/impulse/use_migration_notif
 
                 # re-enable thermal & BCL core_control now
                 echo 1 > /sys/module/msm_thermal/core_control/enabled
@@ -2782,13 +2767,92 @@ case "$target" in
         setprop sys.post_boot.parsed 1
     ;;
     "msm8937" | "msm8953")
+        echo 128 > /sys/block/mmcblk0/bdi/read_ahead_kb
+        echo 128 > /sys/block/mmcblk0/queue/read_ahead_kb
+        echo 128 > /sys/block/dm-0/queue/read_ahead_kb
+        echo 128 > /sys/block/dm-1/queue/read_ahead_kb
+        setprop sys.post_boot.parsed 1
+        start gamed
+    ;;
+    "msm8974")
+        start mpdecision
         echo 512 > /sys/block/mmcblk0/bdi/read_ahead_kb
     ;;
     "msm8994" | "msm8992" | "msm8996" | "msm8998" | "sdm660" | "apq8098_latv" | "sdm845")
         setprop sys.post_boot.parsed 1
-        start gamed
     ;;
+    "apq8084")
+        rm /data/system/perfd/default_values
+        start mpdecision
+        echo 512 > /sys/block/mmcblk0/bdi/read_ahead_kb
+        echo 512 > /sys/block/sda/bdi/read_ahead_kb
+        echo 512 > /sys/block/sdb/bdi/read_ahead_kb
+        echo 512 > /sys/block/sdc/bdi/read_ahead_kb
+        echo 512 > /sys/block/sdd/bdi/read_ahead_kb
+        echo 512 > /sys/block/sde/bdi/read_ahead_kb
+        echo 512 > /sys/block/sdf/bdi/read_ahead_kb
+        echo 512 > /sys/block/sdg/bdi/read_ahead_kb
+        echo 512 > /sys/block/sdh/bdi/read_ahead_kb
+    ;;
+    "msm7627a")
+        if [ -f /sys/devices/soc0/soc_id ]; then
+            soc_id=`cat /sys/devices/soc0/soc_id`
+        else
+            soc_id=`cat /sys/devices/system/soc/soc0/id`
+        fi
+        case "$soc_id" in
+            "127" | "128" | "129")
+                start mpdecision
+        ;;
+        esac
+    ;;
+esac
 
+# Enable Power modes and set the CPU Freq Sampling rates
+case "$target" in
+     "msm7627a")
+        start qosmgrd
+    echo 1 > /sys/module/pm2/modes/cpu0/standalone_power_collapse/idle_enabled
+    echo 1 > /sys/module/pm2/modes/cpu1/standalone_power_collapse/idle_enabled
+    echo 1 > /sys/module/pm2/modes/cpu0/standalone_power_collapse/suspend_enabled
+    echo 1 > /sys/module/pm2/modes/cpu1/standalone_power_collapse/suspend_enabled
+    #SuspendPC:
+    echo 1 > /sys/module/pm2/modes/cpu0/power_collapse/suspend_enabled
+    #IdlePC:
+    echo 1 > /sys/module/pm2/modes/cpu0/power_collapse/idle_enabled
+    echo 25000 > /sys/devices/system/cpu/cpufreq/ondemand/sampling_rate
+    ;;
+esac
+
+# Change adj level and min_free_kbytes setting for lowmemory killer to kick in
+case "$target" in
+     "msm7627a")
+    echo 0,1,2,4,9,12 > /sys/module/lowmemorykiller/parameters/adj
+    echo 5120 > /proc/sys/vm/min_free_kbytes
+     ;;
+esac
+
+# Install AdrenoTest.apk if not already installed
+if [ -f /data/prebuilt/AdrenoTest.apk ]; then
+    if [ ! -d /data/data/com.qualcomm.adrenotest ]; then
+        pm install /data/prebuilt/AdrenoTest.apk
+    fi
+fi
+
+# Install SWE_Browser.apk if not already installed
+if [ -f /data/prebuilt/SWE_AndroidBrowser.apk ]; then
+    if [ ! -d /data/data/com.android.swe.browser ]; then
+        pm install /data/prebuilt/SWE_AndroidBrowser.apk
+    fi
+fi
+
+# Change adj level and min_free_kbytes setting for lowmemory killer to kick in
+case "$target" in
+     "msm8660")
+        start qosmgrd
+        echo 0,1,2,4,9,12 > /sys/module/lowmemorykiller/parameters/adj
+        echo 5120 > /proc/sys/vm/min_free_kbytes
+     ;;
 esac
 
 # Let kernel know our image version/variant/crm_version
@@ -2823,9 +2887,3 @@ esac
 misc_link=$(ls -l /dev/block/bootdevice/by-name/misc)
 real_path=${misc_link##*>}
 setprop persist.vendor.mmi.misc_dev_path $real_path
-
-# Switch TCP congestion control to CDG
-echo cdg > /proc/sys/net/ipv4/tcp_congestion_control
-
-# Disable fingerprint boost - CPU is fast enough by itself.
-echo 0 > /sys/kernel/fp_boost/enabled

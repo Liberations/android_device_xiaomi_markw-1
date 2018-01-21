@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2015, The Linux Foundation. All rights reserved.
-   Copyright (C) 2016 The CyanogenMod Project.
+   Copyright (C) 2018, The LineageOS Project.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are
@@ -28,18 +28,21 @@
    IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <fcntl.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/sysinfo.h>
 
+#include <android-base/file.h>
+#include <android-base/properties.h>
 #include <android-base/strings.h>
 
-#include "vendor_init.h"
 #include "property_service.h"
-#include "log.h"
-#include "util.h"
+#include "vendor_init.h"
 
+using android::base::GetProperty;
+using android::base::ReadFileToString;
 using android::base::Trim;
+using android::init::property_set;
 
 char const *heapstartsize;
 char const *heapgrowthlimit;
@@ -49,17 +52,16 @@ char const *heapminfree;
 char const *heapmaxfree;
 char const *large_cache_height;
 
-
 static void init_alarm_boot_properties()
 {
     char const *boot_reason_file = "/proc/sys/kernel/boot_reason";
     char const *power_off_alarm_file = "/persist/alarm/powerOffAlarmSet";
     std::string boot_reason;
     std::string power_off_alarm;
-    std::string reboot_reason = property_get("ro.boot.alarmboot");
+    std::string reboot_reason = GetProperty("ro.boot.alarmboot", "");
 
-    if (read_file(boot_reason_file, &boot_reason)
-            && read_file(power_off_alarm_file, &power_off_alarm)) {
+    if (ReadFileToString(boot_reason_file, &boot_reason)
+            && ReadFileToString(power_off_alarm_file, &power_off_alarm)) {
         /*
          * Setup ro.alarm_boot value to true when it is RTC triggered boot up
          * For existing PMIC chips, the following mapping applies
@@ -104,22 +106,10 @@ void vendor_load_properties()
     init_alarm_boot_properties();
     check_device();
 
-    android::init::property_set("dalvik.vm.heapstartsize", heapstartsize);
-    android::init::property_set("dalvik.vm.heapgrowthlimit", heapgrowthlimit);
-    android::init::property_set("dalvik.vm.heapsize", heapsize);
-    android::init::property_set("dalvik.vm.heaptargetutilization", "0.75");
-    android::init::property_set("dalvik.vm.heapminfree", heapminfree);
-    android::init::property_set("dalvik.vm.heapmaxfree", heapmaxfree);
-
-    android::init::property_set("ro.hwui.texture_cache_size", "72");
-    android::init::property_set("ro.hwui.layer_cache_size", "48");
-    android::init::property_set("ro.hwui.r_buffer_cache_size", "8");
-    android::init::property_set("ro.hwui.path_cache_size", "32");
-    android::init::property_set("ro.hwui.gradient_cache_size", "1");
-    android::init::property_set("ro.hwui.drop_shadow_cache_size", "6");
-    android::init::property_set("ro.hwui.texture_cache_flushrate", "0.4");
-    android::init::property_set("ro.hwui.text_small_cache_width", "1024");
-    android::init::property_set("ro.hwui.text_small_cache_height", "1024");
-    android::init::property_set("ro.hwui.text_large_cache_width", "2048");
-    android::init::property_set("ro.hwui.text_large_cache_height", large_cache_height);
+    property_set("dalvik.vm.heapstartsize", heapstartsize);
+    property_set("dalvik.vm.heapgrowthlimit", heapgrowthlimit);
+    property_set("dalvik.vm.heapsize", heapsize);
+    property_set("dalvik.vm.heaptargetutilization", "0.75");
+    property_set("dalvik.vm.heapminfree", heapminfree);
+    property_set("dalvik.vm.heapmaxfree", heapmaxfree);
 }

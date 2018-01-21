@@ -318,7 +318,7 @@ case "$target" in
        esac
         ;;
     "msm8953")
-        start_msm_irqbalance_8939
+	start_msm_irqbalance_8939
         if [ -f /sys/devices/soc0/soc_id ]; then
             soc_id=`cat /sys/devices/soc0/soc_id`
         else
@@ -334,13 +334,13 @@ case "$target" in
              "293" | "304" | "338" )
                   case "$hw_platform" in
                        "Surf")
-                                    setprop qemu.hw.mainkeys 1
+                                    setprop qemu.hw.mainkeys 0
                                     ;;
                        "MTP")
-                                    setprop qemu.hw.mainkeys 1
+                                    setprop qemu.hw.mainkeys 0
                                     ;;
                        "RCM")
-                                    setprop qemu.hw.mainkeys 1
+                                    setprop qemu.hw.mainkeys 0
                                     ;;
                   esac
                   ;;
@@ -349,7 +349,7 @@ case "$target" in
 esac
 
 # Set shared touchpanel nodes ownership (these are proc_symlinks to the real sysfs nodes)
-chown -LR system.system /proc/gesture/onoff
+chown -LR system.system /proc/touchpanel
 
 #
 # Copy qcril.db if needed for RIL

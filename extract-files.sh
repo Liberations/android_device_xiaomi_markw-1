@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 # Copyright (C) 2016 The CyanogenMod Project
+# Copyright (C) 2018 The LineageOS Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,31 +34,29 @@ if [ ! -f "$HELPER" ]; then
 fi
 . "$HELPER"
 
-# default to not sanitizing the vendor folder before extraction
-clean_vendor=false
-
-while [ "$1" != "" ]; do
-    case $1 in
-        -n | --no-cleanup )     CLEAN_VENDOR=false
-                                ;;
-        -s | --section )        shift
-                                SECTION=$1
-                                clean_vendor=false
-                                ;;
-        * )                     SRC=$1
-                                ;;
-    esac
-    shift
-done
-
-if [ -z "$SRC" ]; then
+if [ $# -eq 0 ]; then
     SRC=adb
+else
+    if [ $# -eq 1 ]; then
+        SRC=$1
+    elif [ $# -eq 2 ]; then
+        SRC=$1
+        RADIO_SRC=$2
+    else
+        echo "$0: bad number of arguments"
+        echo ""
+        echo "usage: $0 [PATH_TO_EXPANDED_ROM] [PATH_TO_RADIO_FOLDER]"
+        echo ""
+        echo "If PATH_TO_EXPANDED_ROM is not specified, blobs will be extracted from"
+        echo "the device using adb pull."
+        exit 1
+    fi
 fi
 
 # Initialize the helper
-setup_vendor "$DEVICE" "$VENDOR" "$CM_ROOT" false $clean_vendor
+setup_vendor "$DEVICE" "$VENDOR" "$LINEAGE_ROOT"
 
-extract "$MY_DIR"/proprietary-files-common.txt "$SRC"
+extract "$MY_DIR"/proprietary-files-qc.txt "$SRC"
 extract "$MY_DIR"/proprietary-files.txt "$SRC"
 
 if [ -n "$RADIO_SRC" ]; then
