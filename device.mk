@@ -316,15 +316,14 @@ PRODUCT_PACKAGES += \
 # Ramdisk
 PRODUCT_PACKAGES += \
     fstab.qcom \
-    init.qcom.rc \
-    init.qcom.sh \
-    init.qcom.usb.rc \
-    init.qcom.usb.sh \
-    init.target.rc \
-    ueventd.qcom.rc
+    init.rc \
+    init.usb.configfs.rc \
+    init.eviron.rc \
+    ueventd.rc
 
 PRODUCT_PACKAGES += \
-    init.qcom.post_boot.sh
+    init.qcom.post_boot.sh \
+    init.qcom.usb.sh
 
 # RenderScript HAL
 PRODUCT_PACKAGES += \
