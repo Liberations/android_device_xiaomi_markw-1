@@ -205,8 +205,8 @@ TARGET_PROVIDES_KEYMASTER := true
 TARGET_PROVIDES_LIBLIGHT := true
 
 # Lineage Hardware
-BOARD_HARDWARE_CLASS += \
-    $(LOCAL_PATH)/lineagehw
+#BOARD_HARDWARE_CLASS += \
+#    $(LOCAL_PATH)/lineagehw
 
 
 # Partitions
