@@ -35,7 +35,7 @@
 // System dependencies
 #include <stdlib.h>
 #include <dlfcn.h>
-#include <utils/Timers.h>
+
 // Camera dependencies
 #include "QCameraPerf.h"
 #include "QCameraTrace.h"
@@ -392,7 +392,7 @@ int32_t QCameraPerfLock::lock_rel_timed()
     if (mPerfLockEnable) {
         LOGD("E");
         if (mPerfLockHandleTimed < 0) {
-            LOGW("mPerfLockHandle < 0,check if lock is acquired");
+            LOGE("mPerfLockHandle < 0,check if lock is acquired");
             return ret;
         }
         LOGD("perf_handle_rel %d ", mPerfLockHandleTimed);
@@ -434,7 +434,7 @@ int32_t QCameraPerfLock::lock_rel()
     if (mPerfLockEnable) {
         LOGD("E");
         if (mPerfLockHandle < 0) {
-            LOGW("mPerfLockHandle < 0,check if lock is acquired");
+            LOGE("mPerfLockHandle < 0,check if lock is acquired");
             return ret;
         }
         LOGD("perf_handle_rel %d ", mPerfLockHandle);
