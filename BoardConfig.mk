@@ -260,5 +260,9 @@ WIFI_DRIVER_FW_PATH_AP := "ap"
 WIFI_DRIVER_FW_PATH_STA := "sta"
 WPA_SUPPLICANT_VERSION := VER_0_8_X
 
+ALLOW_MISSING_DEPENDENCIES=true
+
 # Inherit from the proprietary version
 -include vendor/xiaomi/markw/BoardConfigVendor.mk
+
+
