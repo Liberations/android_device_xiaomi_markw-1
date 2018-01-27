@@ -55,11 +55,11 @@ BOARD_KERNEL_TAGS_OFFSET := 0x00000100
 BOARD_RAMDISK_OFFSET := 0x01000000
 BOARD_KERNEL_IMAGE_NAME := Image.gz-dtb
 TARGET_KERNEL_CONFIG := markw_defconfig
-TARGET_KERNEL_SOURCE := kernel/markw/V8
+TARGET_KERNEL_SOURCE := kernel/xiaomi/markw
 TARGET_KERNEL_ARCH := arm64
 TARGET_KERNEL_HEADER_ARCH := arm64
-TARGET_KERNEL_CROSS_COMPILE_PREFIX := aarch64-cortex_a53-linux-android-
-KERNEL_TOOLCHAIN := $(ANDROID_BUILD_TOP)/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-a53-7.x/bin
+#TARGET_KERNEL_CROSS_COMPILE_PREFIX := aarch64-cortex_a53-linux-android-
+#KERNEL_TOOLCHAIN := $(ANDROID_BUILD_TOP)/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-a53-7.x/bin
 USE_CLANG_PLATFORM_BUILD := true
 
 TARGET_SPECIFIC_HEADER_PATH += $(LOCAL_PATH)/include
